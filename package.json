@@ -1,6 +1,6 @@
 {
   "name": "magpie-agent-cursor-bridge-linux",
-  "version": "0.2.7",
+  "version": "0.3.1",
   "type": "module",
   "description": "Cursor protocol bridge backed by Magpie for Linux (systemd-managed, in-memory SQLite, multitask subagents)",
   "license": "MIT",
