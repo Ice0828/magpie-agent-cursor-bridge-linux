@@ -203,7 +203,7 @@ async function setup(fs, path, spawn, root) {
     child.on?.('error', resolve);
     child.on?.('exit', resolve);
     child.unref?.();
-    const timer = setTimeout(resolve, 60000);
+    const timer = setTimeout(resolve, 180000);
     timer.unref?.();
   });
 }

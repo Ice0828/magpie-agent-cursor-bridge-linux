@@ -5,6 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {atomic,restoreProxy} from './lib/settings.js';
 import {paths,run,verifyPackage,initializeCertificate,stage,activate,stopJob,label} from './lib/install.js';
+import {ensureBinary} from './lib/download.js';
 const source=path.dirname(fileURLToPath(import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(source,'package.json'),'utf8'));
 const command=process.argv[2]||'setup';
@@ -105,6 +106,7 @@ try {
         }
         console.log('后台已卸载，Cursor 代理已还原，运行缓存与服务单元已清理。本地证书与配置保留在 ~/.config/magpie-cursor-bridge。');
       } else {
+        await ensureBinary(source);
         verifyPackage(source);
         const isWin = process.platform === 'win32';
         const enginePath = path.join(source, 'bin', isWin ? 'cursor-magpie-bridge.exe' : 'cursor-magpie-bridge');
