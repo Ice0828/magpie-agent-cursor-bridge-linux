@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.tgz
+*.zip
+VERIFICATION.txt
+SHA256SUMS
+# Scratch tree install tests create where the OS temp dir is unusable.
+.bridge-tmp-*/
+.bun-tag
+
+# Binaries: download via GitHub releases or build via scripts/build-native.sh
+bin/*
+!bin/.gitkeep
