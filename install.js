@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {atomic,restoreProxy} from './lib/settings.js';
-import {paths,run,verifyPackage,initializeCertificate,stage,activate,stopJob,label} from './lib/install.js';
+import {paths,run,verifyPackage,initializeCertificate,stage,activate,stopJob,label,pruneReleases} from './lib/install.js';
 import {ensureBinary} from './lib/download.js';
 const source=path.dirname(fileURLToPath(import.meta.url));
 const manifest=JSON.parse(fs.readFileSync(path.join(source,'package.json'),'utf8'));
@@ -127,6 +127,7 @@ try {
           atomic(path.join(p.target,'package.json'),JSON.stringify({name:manifest.name,version:manifest.version,type:'module',magpie:manifest.magpie},null,2));
         }
         await activate(p,release,domain);
+        pruneReleases(p, release);
         atomic(path.join(p.root,'installation.json'),JSON.stringify({version:manifest.version,release,source,installed:new Date().toISOString()},null,2));
         console.log(`已成功安装并启动 v${manifest.version}。在 Magpie → Agents 选择 Cursor · Magpie Bridge 和模型；首次连接后重启 Cursor 即可开始使用。`);
       }
