@@ -54,5 +54,14 @@
   ],
   "bundleDependencies": [
     "jsonc-parser"
+  ],
+  "keywords": [
+    "magpie",
+    "magpie-plugin",
+    "magpie-agent",
+    "cursor",
+    "byok",
+    "linux",
+    "systemd"
   ]
 }
