@@ -1,0 +1,48 @@
+name: Build Linux Native
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux-x64:
+    name: Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build native engine
+        run: bash scripts/build-native.sh
+        env:
+          CARGO_BUILD_JOBS: 4
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cursor-magpie-bridge-linux-x64
+          path: bin/cursor-magpie-bridge
+
+  build-linux-arm64:
+    name: Linux arm64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build native engine
+        run: bash scripts/build-native.sh
+        env:
+          CARGO_BUILD_JOBS: 4
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cursor-magpie-bridge-linux-arm64
+          path: bin/cursor-magpie-bridge
