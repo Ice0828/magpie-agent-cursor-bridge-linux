@@ -7,6 +7,7 @@ import {
   getPlatformBinaryInfo,
   computeSha256,
   getCandidateUrls,
+  fetchReleaseSha256,
   ensureBinary
 } from '../lib/download.js';
 
@@ -36,6 +37,11 @@ test('computeSha256 calculates accurate digest for existing files', () => {
   const pkgJson = path.join(source, 'package.json');
   const digest = computeSha256(pkgJson);
   assert.match(digest, /^[a-f0-9]{64}$/);
+});
+
+test('fetchReleaseSha256 parses remote SHA256SUMS accurately', async () => {
+  const hash = await fetchReleaseSha256('0.3.1', 'cursor-magpie-bridge-linux-x64');
+  assert.equal(hash, 'b5a33cbfcb17d3846b432cad52b93714b40ffe0a1063f28c29d0c5bde7be4b21');
 });
 
 test('ensureBinary reuses existing valid binary without network calls', async () => {

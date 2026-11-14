@@ -65,32 +65,32 @@
 ### 1. 前置要求
 - Linux 系统（已实测 Ubuntu / Debian / Fedora / Arch / Manjaro）；
 - 已安装并登录 **Cursor**；
-- 已安装并启动 **Magpie**，且至少配置了一个可用模型或路由组。
+- 已安装并启动 **Magpie**，且至少配置了一个可用模型或智能路由组。
 
-### 2. 在 Magpie 插件面板安装
-打开 Magpie 客户端 → 进入 **Plugins / 插件管理** → 添加本仓库地址：
-```text
-github:Ice0828/magpie-agent-cursor-bridge-linux
-```
-点击安装后，插件将自动拉取 Linux 原生组件。
+### 2. 极简 GUI 全自动安装（推荐，零终端命令）
+1. **安装插件**：打开 Magpie 客户端 → 进入 **Plugins / 插件管理** → 填入 GitHub 仓库地址并点击安装：
+   ```text
+   github:Ice0828/magpie-agent-cursor-bridge-linux
+   ```
+2. **启用桥接**：
+   - 打开 Magpie 的 **Agents** 页面，找到 **Cursor · Magpie Bridge**，**打开开关**并选择所需模型；
+   - 插件将**全自动在后台静默完成**：原生引擎下载（内置镜像加速与 SHA256SUMS 动态校验）、CA 证书配置与 `systemd --user` 用户守护进程托管；
+   - 首次连接就绪后，无需重启系统。
+3. **在 Cursor 中使用**：
+   - 打开 Cursor，点击对话面板或右下角的模型选择下拉框；
+   - Magpie 的全部模型与路由组已自动呈现，点击即可畅快对话与编写代码！
 
-### 3. 一键初始化与服务启动
-在插件目录执行附带的 `setup.sh` 脚本：
+---
+
+### 3. CLI 命令行与开发者手动安装（备用）
+若处于离线环境、调试开发或无需 Magpie GUI 的场景，可直接在终端操作：
 ```bash
-# 自动检测环境并配置 systemd --user 服务与 CA 证书信任
+# 进入插件目录一键安装配置并启动服务
 ./setup.sh setup
-```
 
-查看运行状态：
-```bash
+# 查看运行状态（返回 "state": "connected" 即说明桥接就绪）
 ./setup.sh status
 ```
-当返回 `"state": "connected"` 时，说明后台代理已就绪。
-
-### 4. 在 Cursor 中使用
-1. 打开 Magpie 的 **Agents** 页面，找到 **Cursor · Magpie Bridge** 并开启开关，选择你想使用的目标模型或路由组；
-2. 打开 Cursor，点击右下角或 Composer 面板的模型选择下拉框；
-3. Magpie 提供的模型目录已自动渲染出来，点击即可畅快对话与编写代码！
 
 ---
 
@@ -108,13 +108,17 @@ github:Ice0828/magpie-agent-cursor-bridge-linux
 | `./setup.sh logs` | 实时查看 `journalctl` 服务运行日志 |
 | `./setup.sh uninstall` | 卸载 systemd 服务并清理证书信任 |
 
-亦可直接使用原生 Linux systemd 工具链操作：
+亦可直接使用 Linux 标准 `systemd` 工具链统一审计与管理：
 ```bash
-# 查看服务状态
-systemctl --user status cursor-magpie-bridge
+# 查看桥接服务状态
+systemctl --user status local.magpie.cursor-bridge.service
 
-# 跟踪日志
-journalctl --user -u cursor-magpie-bridge -f
+# 实时跟踪日志
+journalctl --user -u local.magpie.cursor-bridge.service -f
+
+# 重启或停止服务
+systemctl --user restart local.magpie.cursor-bridge.service
+systemctl --user stop local.magpie.cursor-bridge.service
 ```
 
 ---
