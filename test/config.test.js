@@ -7,3 +7,4 @@ test('plugin is a Magpie agent and maps supplied credentials and models',()=>{as
 test('disconnected configuration is inactive',()=>{assert.equal(validate({}),null);assert.equal(validate({...c,enabled:false}),null);});
 test('refuses remote gateway and credential-bearing URL',()=>{for(const gateway of ['https://evil.example/v1','http://127.0.0.1.evil.example','http://key@127.0.0.1','file:///tmp/test'])assert.throws(()=>validate({...c,gateway}));});
 test('selected model must exist and IDs must be unique',()=>{assert.throws(()=>validate({...c,model:'missing'}));assert.throws(()=>validate({...c,models:[...c.models,...c.models]}));});
+test('defaults to first available model when model is not explicitly selected',()=>{const {model,...withoutModel}=c;assert.equal(validate(withoutModel).model,c.models[0].id);});

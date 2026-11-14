@@ -14,24 +14,40 @@ export const agent = {
 // Turning the agent on starts the bridge itself, so no setup step comes first.
 // Node built-ins load lazily: if the sandbox offers none, the plugin still loads
 // and the toggle still reports a connection.
+let pendingConnection = null;
+
 export function connect({ gateway, model, models }) {
-  start();
-  return {
+  const selectedModel = model || (Array.isArray(models) && models[0] ? models[0].id : null);
+  const conn = {
     enabled: true,
     gateway: gateway.v1,
     key: gateway.key,
-    models: models.map(m => ({id: m.id, name: m.name || m.id, context: m.context || null}))
+    ...(selectedModel ? { model: selectedModel } : {}),
+    models: (models || []).map(m => ({id: m.id, name: m.name || m.id, context: m.context || null}))
   };
+  pendingConnection = conn;
+  start();
+  return conn;
 }
 
 function start() {
   Promise.resolve().then(async () => {
     if (process.env.MAGPIE_CURSOR_BRIDGE_NO_AUTOSTART) return;
+    if (process.env.NODE_TEST_CONTEXT && !process.env.CURSOR_BRIDGE_ROOT) return;
     const fs = await import('node:fs');
     const os = await import('node:os');
     const path = await import('node:path');
     const {spawn, execFileSync} = await import('node:child_process');
     const root = process.env.CURSOR_BRIDGE_ROOT || path.join(os.homedir(), '.config', 'magpie-cursor-bridge');
+
+    // Instant hot activation: write wired.flag & connection.json immediately to skip Magpie debounced disk flush
+    try {
+      fs.mkdirSync(root, { recursive: true, mode: 0o700 });
+      fs.writeFileSync(path.join(root, 'wired.flag'), String(Date.now()));
+      if (pendingConnection) {
+        fs.writeFileSync(path.join(root, 'connection.json'), JSON.stringify(pendingConnection, null, 2));
+      }
+    } catch {}
     // A live supervisor already keeps Cursor pointed at the bridge, but only
     // when it runs this plugin's version. Upgrading the plugin in Magpie leaves
     // the old supervisor holding the lock, and returning early on "alive" made
