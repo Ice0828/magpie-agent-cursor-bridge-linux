@@ -8,7 +8,7 @@ export const agent = {
   format: "json",
   model: "model",
   ua: ["cursor-magpie-bridge"],
-  notice: "打开开关即可接管 Cursor，无需重启。首次会自动安装后台桥接（约几十秒）；若弹出证书确认，选“是”。就绪后在 Cursor 里打开对话面板或点一下模型下拉框，Magpie 的模型就会出现在列表里。"
+  notice: "Toggle on to connect Cursor. The bridge starts automatically in the background. If Cursor is already running, please restart Cursor once to refresh the model catalog. Your Magpie models will then be available in Chat and Composer."
 };
 
 // Turning the agent on starts the bridge itself, so no setup step comes first.

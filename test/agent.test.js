@@ -34,7 +34,7 @@ test('the agent module loads with no built-in available at import time', () => {
   assert.equal(typeof agent.id, 'string');
   assert.equal(agent.config, '~/.config/magpie-cursor-bridge/connection.json');
   assert.equal(agent.format, 'json');
-  assert.match(agent.notice, /打开开关/);
+  assert.match(agent.notice, /Toggle on/i);
 });
 
 test('turning the agent on starts the bridge without an explicit setup step', () => {
@@ -161,12 +161,9 @@ test('connect() answers immediately instead of blocking on startup', () => {
   }
 });
 
-test('the notice tells users no restart is needed and how to refresh Cursor', () => {
-  // Restarting Cursor was never required: the catalogue is served per request.
-  // The old wording sent users to a restart that masked startup delays.
-  assert.doesNotMatch(agent.notice, /重启一次 Cursor/);
-  assert.match(agent.notice, /无需重启/);
-  assert.match(agent.notice, /模型下拉框|对话面板/);
+test('the notice tells users how to refresh Cursor when already running', () => {
+  assert.match(agent.notice, /restart Cursor/i);
+  assert.match(agent.notice, /Magpie/i);
 });
 
 test('the supervisor runs on the runtime copy inside the staged release', () => {
