@@ -1583,7 +1583,7 @@ index 80103d1..b3a7d11 100644
 +    }
 +}
 diff --git a/server/src/cursor/services/model_catalog.rs b/server/src/cursor/services/model_catalog.rs
-index b9dbd08..209b430 100644
+index b9dbd08..1edeb8f 100644
 --- a/server/src/cursor/services/model_catalog.rs
 +++ b/server/src/cursor/services/model_catalog.rs
 @@ -21,6 +21,49 @@ struct AvailableModelsAddition {
@@ -1636,7 +1636,16 @@ index b9dbd08..209b430 100644
  }
  
  #[derive(Clone, PartialEq, Message)]
-@@ -246,9 +289,14 @@ fn context_options(context_window_tokens: Option<u64>) -> Vec<(String, String)>
+@@ -71,6 +114,8 @@ struct AvailableModel {
+     vendor_name: Option<String>,
+     #[prost(message, optional, tag = "42")]
+     vendor: Option<AvailableModelVendor>,
++    #[prost(bool, optional, tag = "45")]
++    supports_smart_mode_classifier: Option<bool>,
+     #[prost(message, repeated, tag = "48")]
+     model_picker_badges: Vec<ModelPickerBadge>,
+ }
+@@ -246,9 +291,14 @@ fn context_options(context_window_tokens: Option<u64>) -> Vec<(String, String)>
      contexts
  }
  
@@ -1651,7 +1660,7 @@ index b9dbd08..209b430 100644
      request: Request<Body>,
  ) -> Result<Response<Body>> {
      let models = registry.store().models().await?;
-@@ -270,20 +318,17 @@ pub async fn available_models(
+@@ -270,20 +320,17 @@ pub async fn available_models(
              .chain(plugin_models.iter().map(|model| model.id.clone()))
              .collect(),
          models: available_models,
@@ -1676,7 +1685,7 @@ index b9dbd08..209b430 100644
      request: Request<Body>,
  ) -> Result<Response<Body>> {
      let models = registry.store().models().await?;
-@@ -304,13 +349,7 @@ pub async fn usable_models(
+@@ -304,13 +351,7 @@ pub async fn usable_models(
              .collect(),
      }
      .encode_to_vec();
@@ -1691,7 +1700,7 @@ index b9dbd08..209b430 100644
  }
  
  pub async fn default_model_for_cli(
-@@ -401,6 +440,23 @@ fn default_model_nudge_response(
+@@ -401,6 +442,23 @@ fn default_model_nudge_response(
      }
  }
  
@@ -1715,7 +1724,23 @@ index b9dbd08..209b430 100644
  fn merge_response(upstream: proxy::BufferedResponse, extra: Vec<u8>) -> Result<Response<Body>> {
      if !upstream.status.is_success() {
          tracing::warn!(status = %upstream.status, "Cursor model catalog upstream rejected request; using local catalog");
-@@ -802,6 +858,17 @@ mod tests {
+@@ -482,6 +540,7 @@ fn available_model(model: &ModelConfig) -> AvailableModel {
+         inputbox_short_model_name: Some(model.display_name.clone()),
+         supports_sandboxing: Some(true),
+         supports_cmd_k: Some(false),
++        supports_smart_mode_classifier: Some(true),
+         parameter_definitions: model_parameters(&contexts, true),
+         variants,
+         legacy_slugs,
+@@ -719,6 +778,7 @@ fn available_plugin_model(model: &PluginModelDescriptor) -> AvailableModel {
+         inputbox_short_model_name: Some(model.display_name.clone()),
+         supports_sandboxing: Some(true),
+         supports_cmd_k: Some(false),
++        supports_smart_mode_classifier: Some(true),
+         parameter_definitions: model_parameters(&contexts, true),
+         variants,
+         legacy_slugs,
+@@ -802,6 +862,24 @@ mod tests {
          }
      }
  
@@ -1730,10 +1755,17 @@ index b9dbd08..209b430 100644
 +        assert!(AvailableModelsAddition::default().with_local_picker(false).encode_to_vec().is_empty());
 +    }
 +
++    #[test]
++    fn bridge_models_support_smart_mode_classifier() {
++        let available = available_model(&model());
++        assert_eq!(available.supports_smart_mode_classifier, Some(true));
++        assert_eq!(available.supports_sandboxing, Some(true));
++    }
++
      #[test]
      fn cli_model_details_use_local_routing_credentials() {
          let details = usable_model(&model());
-@@ -859,4 +926,60 @@ mod tests {
+@@ -859,4 +937,60 @@ mod tests {
              vec!["local-model-hash"]
          );
      }
