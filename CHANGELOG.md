@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.2
+
+### Added
+- declare supports_smart_mode_classifier on local models for Auto-review
+- dynamic SHA256SUMS resolution and clarify zero-CLI installation in docs
+
+### Fixed
+- instant hot activation without Magpie disk debounce delay
+
+### Documentation
+- clarify Cursor restart requirement and use English notice
+
+### Other
+- ci: extract changelog section into github release notes
+
 ## 0.3.1 - Linux Dedicated Edition
 
 ### Added
