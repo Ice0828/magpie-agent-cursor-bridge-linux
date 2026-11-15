@@ -77,9 +77,40 @@ jobs:
           chmod +x release-assets/*
           cd release-assets && sha256sum cursor-magpie-bridge-linux-* > SHA256SUMS
 
+      - name: Extract Changelog
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          touch release-notes.md
+          node -e '
+            const fs = require("fs");
+            if (!fs.existsSync("CHANGELOG.md")) process.exit(0);
+            const content = fs.readFileSync("CHANGELOG.md", "utf8");
+            const ver = process.argv[1];
+            const lines = content.split("\n");
+            let capturing = false;
+            const result = [];
+            for (const line of lines) {
+              if (line.startsWith("## ") && line.includes(ver)) {
+                capturing = true;
+                continue;
+              }
+              if (capturing && line.startsWith("## ")) {
+                break;
+              }
+              if (capturing) {
+                result.push(line);
+              }
+            }
+            const notes = result.join("\n").trim();
+            if (notes) {
+              fs.writeFileSync("release-notes.md", notes + "\n");
+            }
+          ' "$VERSION"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: release-notes.md
           files: |
             release-assets/cursor-magpie-bridge-linux-x64
             release-assets/cursor-magpie-bridge-linux-arm64
