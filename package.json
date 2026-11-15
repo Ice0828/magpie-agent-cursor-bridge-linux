@@ -20,7 +20,8 @@
     "test": "node --test test/*.test.js",
     "status": "node install.js status",
     "setup": "node install.js setup",
-    "uninstall": "node install.js uninstall"
+    "uninstall": "node install.js uninstall",
+    "release": "sh scripts/release.sh"
   },
   "dependencies": {
     "jsonc-parser": "3.3.1"
