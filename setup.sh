@@ -26,10 +26,16 @@ find_runtime() {
 
 RUNTIME="$(find_runtime)"
 
+SERVICE_UNIT="local.magpie.cursor-bridge"
+
 case "$COMMAND" in
   setup|install)
     echo "==> Setting up cursor-magpie-bridge-linux..."
     "$RUNTIME" "$PACKAGE_DIR/install.js" setup
+    ;;
+  dev)
+    echo "==> Setting up cursor-magpie-bridge-linux in DEV mode (local binary preferred)..."
+    CURSOR_BRIDGE_LOCAL_BIN=1 "$RUNTIME" "$PACKAGE_DIR/install.js" setup
     ;;
   status)
     "$RUNTIME" "$PACKAGE_DIR/install.js" status
@@ -39,19 +45,19 @@ case "$COMMAND" in
     "$RUNTIME" "$PACKAGE_DIR/install.js" uninstall
     ;;
   start)
-    systemctl --user start cursor-magpie-bridge
+    systemctl --user start "$SERVICE_UNIT"
     ;;
   stop)
-    systemctl --user stop cursor-magpie-bridge
+    systemctl --user stop "$SERVICE_UNIT"
     ;;
   restart)
-    systemctl --user restart cursor-magpie-bridge
+    systemctl --user restart "$SERVICE_UNIT"
     ;;
   logs)
-    journalctl --user -u cursor-magpie-bridge -f
+    journalctl --user -u "$SERVICE_UNIT" -f
     ;;
   *)
-    echo "Usage: $0 [setup|status|start|stop|restart|logs|uninstall]"
+    echo "Usage: $0 [setup|dev|status|start|stop|restart|logs|uninstall]"
     exit 1
     ;;
 esac

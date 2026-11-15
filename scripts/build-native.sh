@@ -26,6 +26,8 @@ BYOK_REPO="${CURSOR_BYOK_REPO:-https://github.com/leookun/cursor-byok.git}"
 git clone --branch v1.0.1 --depth 1 "$BYOK_REPO" "$bridge_build/source"
 [ "$(git -C "$bridge_build/source" rev-parse HEAD)" = 2068ab20513288e6a0289d33febe872a30608610 ]
 git -C "$bridge_build/source" apply "$bridge_package/source.patch"
+echo "==> Running Cargo unit tests for patched engine..."
+cargo test --manifest-path "$bridge_build/source/Cargo.toml" -p cursor-server
 CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}" cargo build --manifest-path "$bridge_build/source/Cargo.toml" --release --locked -p cursor-server --bin cursor-magpie-bridge
 mkdir -p "$bridge_package/bin"
 BIN_NAME="cursor-magpie-bridge"

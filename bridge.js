@@ -28,6 +28,11 @@ const defaultSettings=process.platform==='win32'
     : path.join(os.homedir(),'Library/Application Support/Cursor/User/settings.json');
 const settings=process.env.CURSOR_BRIDGE_SETTINGS||defaultSettings;
 const engineBinary=path.join(packageDir,'bin',process.platform==='win32'?'cursor-magpie-bridge.exe':'cursor-magpie-bridge');
+const features=[
+  'supports_smart_mode_classifier',
+  'bidi_append_binary_encoding',
+  'instant_hot_activation'
+];
 const file=name=>path.join(root,name);
 let lastStatus='',lastWrite=0;
 // status.json also carries a heartbeat. A supervisor that dies without a clean
@@ -35,9 +40,9 @@ let lastStatus='',lastWrite=0;
 // reader (Magpie, install.js status) has that "connected" is no longer true.
 const status=(state,extra={},{force=false}={})=>{
   const now=Date.now();
-  const signature=JSON.stringify({version,state,...extra});
+  const signature=JSON.stringify({version,state,features,...extra});
   if(!force && signature===lastStatus && now-lastWrite<10000) return;
-  atomic(file('status.json'),JSON.stringify({version,state,...extra,updated:new Date(now).toISOString(),heartbeat:now},null,2));
+  atomic(file('status.json'),JSON.stringify({version,state,features,...extra,updated:new Date(now).toISOString(),heartbeat:now},null,2));
   lastStatus=signature;
   lastWrite=now;
 };
