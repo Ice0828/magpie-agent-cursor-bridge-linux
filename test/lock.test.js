@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {alive, held, claim, release, processStartTime} from '../lib/lock.js';
+import {alive, held, claim, release, processStartTime, owns} from '../lib/lock.js';
 
 const temp = t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-lock-test-'));
@@ -50,6 +50,15 @@ test('a lock held by the current process is not taken twice', t => {
   assert.throws(() => claim(lock), /already running/);
   release(lock, owner);
   assert.equal(fs.existsSync(lock), false);
+});
+
+test('owns accurately reports whether the lock belongs to owner', t => {
+  const lock = temp(t);
+  const owner = claim(lock);
+  assert.equal(owns(lock, owner), true);
+  assert.equal(owns(lock, {pid: owner.pid + 1}), false);
+  release(lock, owner);
+  assert.equal(owns(lock, owner), false);
 });
 
 test('release never removes a lock another supervisor has taken over', t => {

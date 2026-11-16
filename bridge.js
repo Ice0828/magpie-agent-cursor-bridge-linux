@@ -7,7 +7,7 @@ import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {atomic,applyProxy,restoreProxy,clearStaleProxy} from './lib/settings.js';
 import {validate,gatewayModels} from './lib/config.js';
-import {claim,held,release} from './lib/lock.js';
+import {claim,held,release,owns} from './lib/lock.js';
 import {readWired, nextMagpieGate} from './lib/magpie.js';
 import {shouldRevive} from './lib/watch.js';
 import {listenFixed} from './lib/relay.js';
@@ -191,6 +191,9 @@ if(command==='status') {
   function allowCursorRestart() { cursorRestarted=false; }
   function ensureWatch() {
     if (process.env.CURSOR_BRIDGE_NO_WATCHDOG === '1') return;
+    // Linux has systemd --user, macOS has launchd. Only Windows lacks a native
+    // user service manager and requires this Node-level polling watchdog.
+    if (process.platform !== 'win32') return;
     // The watchdog is the only thing that revives a killed supervisor, so a
     // single attempt at startup is not enough: it can lose the race against a
     // previous watchdog that still holds the lock, and then exits silently and
@@ -218,6 +221,7 @@ if(command==='status') {
   // hint about the cause. Interactive stop() runs on signals; this covers the
   // abrupt exits signals cannot see (SIGHUP on console close, fatal errors).
   const panic=()=>{try{
+    if(!owns(lock,owner)) return;
     const journal=file('settings-journal.json');
     if(fs.existsSync(journal)) restoreProxy(journal); else clearStaleProxy(settings);
   }catch{}};
@@ -230,6 +234,12 @@ if(command==='status') {
     // readers must not mistake that gap for the previous run's state.
     status('starting',{reason:'正在启动后台桥接'},{force:true});
     while(!ending) {
+      if(!owns(lock,owner)) {
+        // Another supervisor has taken over the lock (e.g. after sleep/relaunch).
+        // Yield cleanly to prevent two processes fighting over Cursor proxy settings.
+        ending=true;
+        break;
+      }
       // Kept outside the try below: a watchdog that cannot be started must never
       // be the reason the proxy stops serving.
       try { ensureWatch(); } catch {}
@@ -298,7 +308,15 @@ if(command==='status') {
       if(!ending) await wait(600);
     }
   } finally {
-    await stop();await closeRelay();status('stopped',{},{force:true});release(lock,owner);
+    if(owns(lock,owner)) {
+      await stop();await closeRelay();status('stopped',{},{force:true});release(lock,owner);
+    } else {
+      const old=child;child=null;ready=null;
+      if(old && old.exitCode===null && old.signalCode===null) {
+        try { old.kill('SIGTERM'); } catch {}
+      }
+      await closeRelay();
+    }
   }
 } else if(command==='watch') {
   if (process.env.CURSOR_BRIDGE_NO_WATCHDOG === '1') process.exit(0);
